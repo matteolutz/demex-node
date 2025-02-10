@@ -17,7 +17,7 @@ struct Args {
     universe: u16,
 
     /// Verbose
-    #[arg(long)]
+    #[arg(short, long)]
     verbose: bool,
 }
 
@@ -35,15 +35,15 @@ fn main() {
         let (length, _addr) = socket.recv_from(&mut buffer).unwrap();
         let command = ArtCommand::from_buffer(&buffer[..length]).unwrap();
 
-        if args.verbose {
-            println!("Received {:?}", command);
-        }
-
         match command {
             ArtCommand::Output(output) => {
                 if output.port_address == universe_port_addr
                     && output.data.as_ref().len() == DMX_CHANNELS
                 {
+                    if args.verbose {
+                        println!("Received relevant output command {:?}", output);
+                    }
+
                     for i in 0..DMX_CHANNELS {
                         serial.set_channel(i + 1, output.data.as_ref()[i]).unwrap();
                     }

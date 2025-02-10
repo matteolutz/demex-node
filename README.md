@@ -1,1 +1,4 @@
 # demex-node
+
+## Requirements
+- `libudev`
