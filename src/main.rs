@@ -21,14 +21,28 @@ struct Args {
     verbose: bool,
 }
 
+const ARTNET_PORT: u16 = 6454;
+
+fn universe_to_sub_and_uni(universe: u16) -> (u8, u8) {
+    let [uni, sub] = universe.to_be_bytes();
+    (uni, sub & 0b01111111)
+}
+
 fn main() {
     let args = Args::parse();
 
+    let (sub, uni) = universe_to_sub_and_uni(args.universe);
+
     let universe_port_addr = PortAddress::try_from(args.universe).unwrap();
 
-    let socket = UdpSocket::bind(("0.0.0.0", 6454)).unwrap();
+    let socket = UdpSocket::bind(("0.0.0.0", ARTNET_PORT)).unwrap();
 
     let mut serial = DMXSerial::open_sync(args.port.as_str()).unwrap();
+
+    println!(
+        "[demex-node] Listening on ::{} on universe {} (sub {}, uni {}), writing to serial port {}...",
+        ARTNET_PORT, args.universe, sub, uni, serial.name()
+    );
 
     loop {
         let mut buffer = [0u8; 1024];
