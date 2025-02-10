@@ -24,8 +24,8 @@ struct Args {
 const ARTNET_PORT: u16 = 6454;
 
 fn universe_to_sub_and_uni(universe: u16) -> (u8, u8) {
-    let [uni, sub] = universe.to_be_bytes();
-    (uni, sub & 0b01111111)
+    let [sub, uni] = universe.to_be_bytes();
+    (sub & 0b01111111, uni)
 }
 
 fn main() {
