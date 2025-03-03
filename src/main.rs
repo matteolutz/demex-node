@@ -66,7 +66,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let socket: UdpSocket = socket.into();
 
-    let mut serial = DMXSerial::open_sync(args.port.as_str()).unwrap();
+    let mut serial = DMXSerial::open(args.port.as_str()).unwrap();
 
     log::info!(
         "Listening on {} on port address {} (net {}, sub {}, uni {}), writing to serial port {}...",
@@ -102,8 +102,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     for i in 0..DMX_CHANNELS {
                         serial.set_channel(i + 1, output.data.as_ref()[i]).unwrap();
                     }
-
-                    serial.update().unwrap();
                 }
             }
             ArtCommand::Poll(_) => {
