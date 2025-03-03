@@ -1,8 +1,9 @@
-use std::net::{IpAddr, Ipv4Addr, UdpSocket};
+use std::net::{IpAddr, Ipv4Addr, SocketAddr, UdpSocket};
 
 use artnet_protocol::{ArtCommand, PollReply, PortAddress};
 use clap::Parser;
 use open_dmx::{DMXSerial, DMX_CHANNELS};
+use socket2::{Domain, Protocol, Socket, Type};
 
 /// demex-node
 #[derive(Parser, Debug)]
@@ -35,7 +36,7 @@ fn ip_to_v4(ip: IpAddr) -> Ipv4Addr {
     }
 }
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     if std::env::var("RUST_LOG").is_err() {
         std::env::set_var("RUST_LOG", "info");
     }
@@ -46,19 +47,33 @@ fn main() {
 
     let (net, sub, uni) = universe_to_net_sub_and_uni(args.universe);
 
-    let universe_port_addr = PortAddress::try_from(args.universe).unwrap();
+    let universe_port_addr = PortAddress::try_from(args.universe)?;
 
-    let socket = UdpSocket::bind((
+    let socket_addr: SocketAddr = format!(
+        "{}:{}",
         args.interface.unwrap_or_else(|| "0.0.0.0".to_owned()),
-        ARTNET_PORT,
-    ))
-    .unwrap();
+        ARTNET_PORT
+    )
+    .parse()?;
+
+    let socket = Socket::new(Domain::IPV4, Type::DGRAM, Some(Protocol::UDP))?;
+    socket.set_reuse_address(true)?;
+    socket.set_broadcast(true)?;
+
+    socket.bind(&socket_addr.into())?;
+
+    let socket: UdpSocket = socket.into();
 
     let mut serial = DMXSerial::open_sync(args.port.as_str()).unwrap();
 
     log::info!(
-        "[demex-node] Listening on {} on port address {} (net {}, sub {}, uni {}), writing to serial port {}...",
-        socket.local_addr().unwrap(), args.universe, net, sub, uni, serial.name()
+        "Listening on {} on port address {} (net {}, sub {}, uni {}), writing to serial port {}...",
+        socket.local_addr().unwrap(),
+        args.universe,
+        net,
+        sub,
+        uni,
+        serial.name()
     );
 
     let poll_reply = ArtCommand::PollReply(Box::new(PollReply {
@@ -80,7 +95,7 @@ fn main() {
                 if output.port_address == universe_port_addr
                     && output.data.as_ref().len() == DMX_CHANNELS
                 {
-                    log::debug!("[demex-node] Received relevant output command {:?}", output);
+                    log::debug!("Received relevant output command {:?}", output);
 
                     for i in 0..DMX_CHANNELS {
                         serial.set_channel(i + 1, output.data.as_ref()[i]).unwrap();
@@ -90,12 +105,9 @@ fn main() {
                 }
             }
             ArtCommand::Poll(_) => {
-                log::debug!(
-                    "[demex-node] Received poll from {:?}, replying..",
-                    recv_addr
-                );
+                log::debug!("Received poll from {:?}, replying..", recv_addr);
 
-                log::debug!("[demex-node] Answering to poll with: {}", poll_reply_str);
+                log::debug!("Answering to poll with: {}", poll_reply_str);
 
                 socket.send_to(&poll_reply_buffer, recv_addr).unwrap();
             }
