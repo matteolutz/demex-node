@@ -57,12 +57,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .parse()?;
 
     let socket = Socket::new(Domain::IPV4, Type::DGRAM, Some(Protocol::UDP))?;
-    // socket.set_reuse_address(true)?;
-    // socket.set_broadcast(true)?;
+    socket.set_reuse_address(true)?;
+    socket.set_broadcast(true)?;
 
-    // socket.bind(&socket_addr.into())?;
+    socket.bind(&socket_addr.into())?;
 
-    let socket: UdpSocket = UdpSocket::bind(socket_addr)?;
+    let socket: UdpSocket = socket.into();
 
     let mut serial = DMXSerial::open_sync(args.port.as_str()).unwrap();
 
