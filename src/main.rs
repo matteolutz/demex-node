@@ -99,9 +99,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 {
                     log::debug!("Received relevant output command {:?}", output);
 
-                    for i in 0..DMX_CHANNELS {
-                        serial.set_channel(i + 1, output.data.as_ref()[i]).unwrap();
-                    }
+                    let data: Vec<u8> = output.data.into();
+
+                    serial.set_channels(data.try_into().unwrap());
                 }
             }
             ArtCommand::Poll(_) => {
