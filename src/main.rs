@@ -105,8 +105,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
             ArtCommand::Poll(_) => {
-                log::debug!("Received poll from {:?}, replying..", recv_addr);
-
+                log::info!("Received poll from {:?}, replying..", recv_addr);
                 log::debug!("Answering to poll with: {}", poll_reply_str);
 
                 socket.send_to(&poll_reply_buffer, recv_addr).unwrap();
