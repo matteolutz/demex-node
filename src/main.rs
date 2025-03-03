@@ -19,10 +19,6 @@ struct Args {
     /// Interface to bind to (defaults to 0.0.0.0)
     #[arg(short, long)]
     interface: Option<String>,
-
-    /// Verbose
-    #[arg(short, long)]
-    verbose: bool,
 }
 
 const ARTNET_PORT: u16 = 6454;
