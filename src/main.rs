@@ -49,18 +49,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let universe_port_addr = PortAddress::try_from(args.universe)?;
 
-    let socket_addr: SocketAddr = format!(
+    let local_socket_addr: SocketAddr = format!(
         "{}:{}",
         args.interface.unwrap_or_else(|| "0.0.0.0".to_owned()),
         ARTNET_PORT
     )
     .parse()?;
 
+    let bind_socket_addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::UNSPECIFIED), ARTNET_PORT);
+
     let socket = Socket::new(Domain::IPV4, Type::DGRAM, Some(Protocol::UDP))?;
     socket.set_reuse_address(true)?;
     socket.set_broadcast(true)?;
 
-    socket.bind(&socket_addr.into())?;
+    socket.bind(&bind_socket_addr.into())?;
 
     let socket: UdpSocket = socket.into();
 
@@ -78,7 +80,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let poll_reply = ArtCommand::PollReply(Box::new(PollReply {
         port_address: [net, sub],
-        address: ip_to_v4(socket.local_addr().unwrap().ip()),
+        address: ip_to_v4(local_socket_addr.ip()),
         swout: [uni, uni, uni, uni],
         ..Default::default()
     }));
