@@ -55,8 +55,8 @@ fn main() {
     let mut serial = DMXSerial::open_sync(args.port.as_str()).unwrap();
 
     println!(
-        "[demex-node] Listening on ::{} on port address {} (net {}, sub {}, uni {}), writing to serial port {}...",
-        ARTNET_PORT, args.universe, net, sub, uni, serial.name()
+        "[demex-node] Listening on {} on port address {} (net {}, sub {}, uni {}), writing to serial port {}...",
+        socket.local_addr().unwrap(), args.universe, net, sub, uni, serial.name()
     );
 
     let poll_reply = ArtCommand::PollReply(Box::new(PollReply {
