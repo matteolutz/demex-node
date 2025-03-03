@@ -16,6 +16,10 @@ struct Args {
     #[arg(short, long)]
     universe: u16,
 
+    /// Interface to bind to (defaults to 0.0.0.0)
+    #[arg(short, long)]
+    interface: Option<String>,
+
     /// Verbose
     #[arg(short, long)]
     verbose: bool,
@@ -42,7 +46,11 @@ fn main() {
 
     let universe_port_addr = PortAddress::try_from(args.universe).unwrap();
 
-    let socket = UdpSocket::bind(("0.0.0.0", ARTNET_PORT)).unwrap();
+    let socket = UdpSocket::bind((
+        args.interface.unwrap_or_else(|| "0.0.0.0".to_owned()),
+        ARTNET_PORT,
+    ))
+    .unwrap();
 
     let mut serial = DMXSerial::open_sync(args.port.as_str()).unwrap();
 
