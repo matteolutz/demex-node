@@ -40,6 +40,12 @@ fn ip_to_v4(ip: IpAddr) -> Ipv4Addr {
 }
 
 fn main() {
+    if std::env::var("RUST_LOG").is_err() {
+        std::env::set_var("RUST_LOG", "info");
+    }
+
+    env_logger::init();
+
     let args = Args::parse();
 
     let (net, sub, uni) = universe_to_net_sub_and_uni(args.universe);
@@ -54,7 +60,7 @@ fn main() {
 
     let mut serial = DMXSerial::open_sync(args.port.as_str()).unwrap();
 
-    println!(
+    log::info!(
         "[demex-node] Listening on {} on port address {} (net {}, sub {}, uni {}), writing to serial port {}...",
         socket.local_addr().unwrap(), args.universe, net, sub, uni, serial.name()
     );
@@ -78,9 +84,7 @@ fn main() {
                 if output.port_address == universe_port_addr
                     && output.data.as_ref().len() == DMX_CHANNELS
                 {
-                    if args.verbose {
-                        println!("[demex-node] Received relevant output command {:?}", output);
-                    }
+                    log::debug!("[demex-node] Received relevant output command {:?}", output);
 
                     for i in 0..DMX_CHANNELS {
                         serial.set_channel(i + 1, output.data.as_ref()[i]).unwrap();
@@ -90,14 +94,12 @@ fn main() {
                 }
             }
             ArtCommand::Poll(_) => {
-                println!(
+                log::debug!(
                     "[demex-node] Received poll from {:?}, replying..",
                     recv_addr
                 );
 
-                if args.verbose {
-                    println!("[demex-node] Answering to poll with: {}", poll_reply_str);
-                }
+                log::debug!("[demex-node] Answering to poll with: {}", poll_reply_str);
 
                 socket.send_to(&poll_reply_buffer, recv_addr).unwrap();
             }

@@ -7,3 +7,5 @@ edition = "2021"
 open_dmx = "1.1.1"
 artnet_protocol = { git = "https://github.com/matteolutz/artnet_protocol" }
 clap = { version = "4.5.28", features = ["derive"] }
+log = "0.4.26"
+env_logger = "0.11.6"
