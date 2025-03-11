@@ -57,11 +57,16 @@ fn vec_to_max_arr<T: Default + Copy, const N: usize>(
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    if std::env::var("RUST_LOG").is_err() {
-        std::env::set_var("RUST_LOG", "info");
+    if std::env::var(env_logger::DEFAULT_FILTER_ENV).is_err() {
+        std::env::set_var(env_logger::DEFAULT_FILTER_ENV, "info");
     }
 
     env_logger::init();
+
+    log::info!(
+        "Starting with filter level {}",
+        std::env::var(env_logger::DEFAULT_FILTER_ENV).unwrap()
+    );
 
     let args = Args::parse();
 
