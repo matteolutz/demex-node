@@ -20,6 +20,14 @@ struct Args {
     /// Interface to bind to (defaults to 0.0.0.0)
     #[arg(short, long)]
     interface: Option<String>,
+
+    /// Long name of the node (this parameter is sent in poll replies)
+    #[arg(long)]
+    long_name: String,
+
+    /// Short name of the node (this parameter is sent in poll replies)
+    #[arg(long)]
+    short_name: String,
 }
 
 const ARTNET_PORT: u16 = 6454;
@@ -34,6 +42,18 @@ fn ip_to_v4(ip: IpAddr) -> Ipv4Addr {
         IpAddr::V4(v4) => v4,
         _ => panic!("Expected IPv4 address"),
     }
+}
+
+fn vec_to_max_arr<T: Default + Copy, const N: usize>(
+    v: Vec<T>,
+) -> Result<[T; N], Box<dyn std::error::Error>> {
+    if v.len() > N {
+        return Err("Vector too long".into());
+    }
+
+    let mut arr = [Default::default(); N];
+    arr[..v.len()].copy_from_slice(&v);
+    Ok(arr)
 }
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -82,6 +102,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         port_address: [net, sub],
         address: ip_to_v4(local_socket_addr.ip()),
         swout: [uni, uni, uni, uni],
+        long_name: vec_to_max_arr(args.long_name.into_bytes())?,
+        short_name: vec_to_max_arr(args.short_name.into_bytes())?,
         ..Default::default()
     }));
     let poll_reply_str = format!("{:?}", poll_reply);
