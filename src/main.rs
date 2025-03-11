@@ -98,6 +98,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         serial.name()
     );
 
+    log::info!(
+        "Long name: {}, short name: {}",
+        args.long_name,
+        args.short_name
+    );
+
     let poll_reply = ArtCommand::PollReply(Box::new(PollReply {
         port_address: [net, sub],
         address: ip_to_v4(local_socket_addr.ip()),
